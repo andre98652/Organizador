@@ -352,24 +352,9 @@ fun ActivityItem(
     }
 
     // Calculations
-    // Calculations
     val context = androidx.compose.ui.platform.LocalContext.current
     val daysRemaining = remember(activity.dueDate) {
-        // 1. Get current local date components
-        val localCal = java.util.Calendar.getInstance()
-        val year = localCal.get(java.util.Calendar.YEAR)
-        val month = localCal.get(java.util.Calendar.MONTH)
-        val day = localCal.get(java.util.Calendar.DAY_OF_MONTH)
-
-        // 2. Create UTC timestamp for this local date (normalized to midnight UTC)
-        val todayUtcCal = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC"))
-        todayUtcCal.clear()
-        todayUtcCal.set(year, month, day)
-        val todayUtcMillis = todayUtcCal.timeInMillis
-
-        // 3. Compare with activity.dueDate (which is already UTC midnight)
-        val diff = activity.dueDate - todayUtcMillis
-        java.util.concurrent.TimeUnit.MILLISECONDS.toDays(diff).toInt()
+        com.example.organizador.util.DateUtils.getDaysRemaining(activity.dueDate)
     }
     
     val isToday = daysRemaining == 0
