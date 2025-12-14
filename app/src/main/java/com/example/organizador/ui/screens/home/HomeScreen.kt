@@ -20,6 +20,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -203,30 +204,106 @@ fun HomeScreen(
             }
 
             // Activity List
-            LazyColumn(
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(activities) { activity ->
-                    ActivityItem(
-                        activity = activity,
-                        onItemClick = { 
-                            if (onActivityClickAction == "edit") {
-                                navController.navigate(Screen.AddEdit.createRoute(activity.id))
-                            } else {
-                                navController.navigate(Screen.Detail.createRoute(activity.id)) 
-                            }
-                        },
-                        onDeleteClick = { 
-                            if (confirmDelete) {
-                                activityToDelete = activity
-                                showDeleteDialog = true
-                            } else {
-                                viewModel.deleteActivity(activity)
-                            }
-                        },
-                        onToggleComplete = { viewModel.toggleActivityCompletion(activity) }
+            if (activities.isEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp).alpha(0.5f),
+                        tint = MaterialTheme.colorScheme.primary
                     )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "¡Todo al día!",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "Relájate o agrega una nueva actividad.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+                LazyColumn(
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(activities, key = { it.id }) { activity ->
+                        val dismissState = rememberSwipeToDismissBoxState(
+                            confirmValueChange = {
+                                if (it == SwipeToDismissBoxValue.EndToStart) {
+                                    if (confirmDelete) {
+                                        activityToDelete = activity
+                                        showDeleteDialog = true
+                                        false
+                                    } else {
+                                        viewModel.deleteActivity(activity)
+                                        true
+                                    }
+                                } else {
+                                    false
+                                }
+                            }
+                        )
+
+                        SwipeToDismissBox(
+                            state = dismissState,
+                            backgroundContent = {
+                                val color = if (dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart) {
+                                    MaterialTheme.colorScheme.errorContainer
+                                } else {
+                                    Color.Transparent
+                                }
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(
+                                            color,
+                                            androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
+                                        )
+                                        .padding(end = 20.dp),
+                                    contentAlignment = Alignment.CenterEnd
+                                ) {
+                                    if (dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart) {
+                                        Icon(
+                                            Icons.Default.Delete,
+                                            contentDescription = "Borrar",
+                                            tint = MaterialTheme.colorScheme.onErrorContainer
+                                        )
+                                    }
+                                }
+                            },
+                            content = {
+                                ActivityItem(
+                                    activity = activity,
+                                    onItemClick = { 
+                                        if (onActivityClickAction == "edit") {
+                                            navController.navigate(Screen.AddEdit.createRoute(activity.id))
+                                        } else {
+                                            navController.navigate(Screen.Detail.createRoute(activity.id)) 
+                                        }
+                                    },
+                                    onDeleteClick = { 
+                                        if (confirmDelete) {
+                                            activityToDelete = activity
+                                            showDeleteDialog = true
+                                        } else {
+                                            viewModel.deleteActivity(activity)
+                                        }
+                                    },
+                                    onToggleComplete = { viewModel.toggleActivityCompletion(activity) }
+                                )
+                            }
+                        )
+                    }
                 }
             }
         }

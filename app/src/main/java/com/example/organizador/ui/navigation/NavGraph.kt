@@ -28,11 +28,12 @@ sealed class Screen(val route: String) {
 fun NavGraph(
     navController: NavHostController,
     viewModel: ActivityViewModel,
-    modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier
+    modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier,
+    startDestination: String = Screen.Home.route
 ) {
     NavHost(
         navController = navController,
-        startDestination = Screen.Home.route,
+        startDestination = startDestination,
         modifier = modifier
     ) {
         composable(Screen.Home.route) {
