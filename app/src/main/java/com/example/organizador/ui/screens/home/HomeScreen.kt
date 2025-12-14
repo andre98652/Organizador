@@ -15,6 +15,8 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -46,6 +48,9 @@ fun HomeScreen(
     // Preferences
     val confirmDelete by viewModel.isConfirmDeleteEnabled.collectAsState()
     val onActivityClickAction by viewModel.onActivityClickAction.collectAsState()
+
+    // Search
+    val searchQuery by viewModel.searchQuery.collectAsState()
 
     // Confirmation Dialog State
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -181,6 +186,23 @@ fun HomeScreen(
         }
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
+
+            // Search Bar
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { viewModel.setSearchQuery(it) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                placeholder = { Text("Buscar tarea...") },
+                leadingIcon = { Icon(Icons.Default.Search, null) },
+                singleLine = true,
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary
+                )
+            )
 
             // Category Chips
             LazyRow(

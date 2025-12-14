@@ -27,20 +27,27 @@ class ActivityViewModel(
     // Status Filter: null = All, false = Pending, true = Completed
     private val _selectedStatusFilter = MutableStateFlow<Boolean?>(false) // Default to Pending
     val selectedStatusFilter: StateFlow<Boolean?> = _selectedStatusFilter
+    
+    // Search Query
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery
 
     // Combined Flow for Activities
     val activities: StateFlow<List<ActivityEntity>> = combine(
         repository.allActivities,
         _selectedCategoryFilter,
-        _selectedStatusFilter
-    ) { activities, categoryId, isCompleted ->
+        _selectedStatusFilter,
+        _searchQuery
+    ) { activities, categoryId, isCompleted, query ->
         activities.filter { activity ->
             // Filter by Category
             val matchCategory = categoryId == null || activity.categoryId == categoryId
             // Filter by Status
             val matchStatus = isCompleted == null || activity.isCompleted == isCompleted
+            // Filter by Query
+            val matchQuery = activity.title.contains(query, ignoreCase = true)
             
-            matchCategory && matchStatus
+            matchCategory && matchStatus && matchQuery
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -73,6 +80,10 @@ class ActivityViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "detail")
 
     // Actions
+    fun setSearchQuery(query: String) {
+        _searchQuery.value = query
+    }
+
     fun setCategoryFilter(categoryId: Int?) {
         _selectedCategoryFilter.value = categoryId
     }
